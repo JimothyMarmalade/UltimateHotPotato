@@ -13,13 +13,21 @@ public class PickUp : MonoBehaviour
     public float dropForwardForce, dropUpwardForce;
 
     public static bool playerIsHoldingObject;
+    public static bool canBePickedUp = true;
 
+    public float timeToReset = 3f;
+    public float currentTimeHeld = 0;
+
+    public void Start()
+    {
+        transform.position = PotatoSpawn.position;
+    }
 
     public void Update()
     {
         Vector3 distanceToPlayer = player.position - transform.position;
 
-        if (!playerIsHoldingObject && distanceToPlayer.magnitude <= pickUpRange && Input.GetMouseButtonDown(0))
+        if (!playerIsHoldingObject && distanceToPlayer.magnitude <= pickUpRange && Input.GetMouseButtonDown(0) && canBePickedUp)
         {
             Pick();
         }
@@ -30,16 +38,18 @@ public class PickUp : MonoBehaviour
 
         if (transform.position.y <= -20)
         {
-            potBody.angularDrag = 50000f;
+            Respawn();
+        }
 
-            transform.SetParent(PotatoSpawn);
-            potBody.velocity = Vector3.zero;
+        if (playerIsHoldingObject)
+        {
+            currentTimeHeld += Time.deltaTime;
+        }
 
-            transform.localPosition = Vector3.zero;
-            transform.localRotation = Quaternion.Euler(Vector3.zero);
-            transform.SetParent(null);
-            potBody.angularDrag = 0.05f;
-
+        if (currentTimeHeld >= timeToReset)
+        {
+            Drop();
+            currentTimeHeld = 0;
         }
 
     }
@@ -61,10 +71,12 @@ public class PickUp : MonoBehaviour
 
         transform.SetParent(null);
 
+        transform.SetPositionAndRotation(objectHolder.position, Quaternion.Euler(Vector3.zero));
+
         potBody.isKinematic = false;
         coll.isTrigger = false;
 
-        potBody.velocity = player.GetComponent<Rigidbody>().velocity;
+        potBody.velocity = player.GetComponent<CharacterController>().velocity;
 
         potBody.AddForce(fpsCam.forward*dropForwardForce, ForceMode.Impulse);
         potBody.AddForce(fpsCam.up*dropUpwardForce, ForceMode.Impulse);
@@ -72,9 +84,39 @@ public class PickUp : MonoBehaviour
         float random = Random.Range(-1f, -1f);
         potBody.AddTorque(new Vector3(random, random, random)*10);
 
-
+        currentTimeHeld = 0;
+        canBePickedUp = false;
+        StartCoroutine(pickupCooldown());
 
     }
 
+    public void Respawn()
+    {
+        StopAllCoroutines();
+        canBePickedUp = true;
 
+        potBody.angularDrag = 50000f;
+
+        transform.SetParent(PotatoSpawn);
+        potBody.velocity = Vector3.zero;
+
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.Euler(Vector3.zero);
+        transform.SetParent(null);
+        potBody.angularDrag = 0.05f;
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "PotatoReset")
+        {
+            Respawn();
+        }
+    }
+
+    IEnumerator pickupCooldown()
+    {
+        yield return new WaitForSeconds(2.5f);
+        canBePickedUp = true;
+    }
 }
