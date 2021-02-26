@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - PotatoReset
+  - FinalPlatform
   layers:
   - Default
   - TransparentFX

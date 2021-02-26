@@ -1,12 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PickUp : MonoBehaviour
 {
     public Rigidbody potBody;
     public SphereCollider coll;
     public Transform player, objectHolder, fpsCam;
+
+    public TMP_Text timeText;
+    public GameObject hudpanel;
+    public GameObject gameoverpanel;
 
     public Transform PotatoSpawn;
     public float pickUpRange;
@@ -17,6 +22,9 @@ public class PickUp : MonoBehaviour
 
     public float timeToReset = 3f;
     public float currentTimeHeld = 0;
+    public float cooldownTime = 0.5f;
+
+
 
     public void Start()
     {
@@ -44,6 +52,13 @@ public class PickUp : MonoBehaviour
         if (playerIsHoldingObject)
         {
             currentTimeHeld += Time.deltaTime;
+            float formatted = (timeToReset - currentTimeHeld);
+            
+            timeText.text = "Potato Timer: " + formatted.ToString("#.00");
+        }
+        else
+        {
+            timeText.text = "Find the Potato!";
         }
 
         if (currentTimeHeld >= timeToReset)
@@ -114,9 +129,23 @@ public class PickUp : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "FinalPlatform")
+        {
+            if (playerIsHoldingObject)
+            {
+                timeToReset = 500.0f;
+                Cursor.lockState = CursorLockMode.None;
+                hudpanel.SetActive(false);
+                gameoverpanel.SetActive(true);
+            }
+        }
+    }
+
     IEnumerator pickupCooldown()
     {
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(cooldownTime);
         canBePickedUp = true;
     }
 }
