@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class FPSPlayerMovement : MonoBehaviour
 {
+    public int PlayerNum;
+
     public CharacterController playerController;
     public Transform groundCheck;
+    public Transform player2;
+
+    public Potato potatoReference;
 
     public Transform spawnLocation;
     public float speed = 12f;
@@ -34,13 +39,27 @@ public class FPSPlayerMovement : MonoBehaviour
         {
             Debug.Log("Hit Q");
             transform.SetPositionAndRotation(new Vector3(-6, 3, -5), Quaternion.Euler(Vector3.zero));
-
+            player2.transform.SetPositionAndRotation(new Vector3(-53, 3, -5), Quaternion.Euler(Vector3.zero));
+            potatoReference.Respawn();
 
         }
 
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("Player One, potatoReference.TryPickUp");
+            potatoReference.TryPickUp(PlayerNum);
+        }
+
+        if (Input.GetKeyDown("escape"))
+        {
+            Debug.Log("Quitting Application...");
+            Application.Quit();
+
+        }
+
     }
 
+   
     public void Jump()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -53,13 +72,13 @@ public class FPSPlayerMovement : MonoBehaviour
 
     public void PlayerMove()
     {
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        float x = Input.GetAxis("Horizontal1");
+        float z = Input.GetAxis("Vertical1");
 
         Vector3 move = transform.right * x + transform.forward * z;
         playerController.Move(move* speed * Time.deltaTime);
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (Input.GetButtonDown("Jump1") && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
